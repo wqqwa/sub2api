@@ -372,6 +372,7 @@ const defaultBaseUrl = typeof window !== 'undefined' ? window.location.origin : 
 const providerWebhookHintMap: Record<string, string> = {
   stripe: 'admin.settings.payment.stripeWebhookHint',
   airwallex: 'admin.settings.payment.airwallexWebhookHint',
+  nowpayments: 'admin.settings.payment.nowpaymentsWebhookHint',
 }
 
 const providerWebhookUrl = computed(() => {
