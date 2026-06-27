@@ -25,6 +25,7 @@ Sub2API 内置支付系统，支持用户自助充值，无需部署独立的支
 | **支付宝官方** | 桌面二维码扫码、移动端支付宝跳转 | 直接对接支付宝开放平台，桌面端返回二维码，移动端返回 WAP/唤起链接 |
 | **微信官方** | Native 扫码、H5、公众号/JSAPI 支付 | 直接对接微信支付 APIv3，按终端环境自动分流 |
 | **Stripe** | 银行卡、支付宝、微信支付、Link 等 | 国际支付，支持多币种 |
+| **NOWPayments** | USDT、BTC、ETH 等 300+ 种加密货币 | 加密货币支付，支持 U 支付（USDT） |
 
 > 支付宝官方 / 微信官方与易支付可以同时作为后台服务商实例存在，但前台始终只展示 `支付宝`、`微信支付` 两个可见按钮。管理员需要分别为这两个按钮选择唯一支付来源：官方或易支付。官方渠道直接对接 API，资金直达商户账户，手续费更低；易支付通过第三方平台聚合，接入门槛更低。
 
@@ -154,6 +155,56 @@ Sub2API 内置支付系统，支持用户自助充值，无需部署独立的支
 | **Publishable Key** | Stripe 可公开密钥（`pk_live_...` 或 `pk_test_...`） | 是 |
 | **Webhook Secret** | Stripe Webhook 签名密钥（`whsec_...`） | 是 |
 
+### NOWPayments（加密货币支付）
+
+支持 300+ 种加密货币（USDT、BTC、ETH 等）的国际支付平台，适用于接收加密货币付款。WooCross 底层使用 NOWPayments API。
+
+> **注册地址**：https://account.nowpayments.io/create-account
+
+#### 获取凭证
+
+1. 登录 [NOWPayments Dashboard](https://account.nowpayments.io/)
+2. **API Key**：进入 `Settings → API Keys → Generate API Key`
+3. **IPN Secret**：进入 `Settings → IPN Secret → Generate Secret`（用于验证 Webhook 回调签名）
+
+#### 配置参数
+
+| 参数 | 说明 | 必填 |
+|------|------|------|
+| **apiKey** | NOWPayments API Key | 是 |
+| **ipnSecret** | NOWPayments IPN Secret（HMAC-SHA512 签名验证） | 是 |
+| **apiBase** | API 地址（默认 `https://api.nowpayments.io/v1`） | 否 |
+| **priceCurrency** | 计价法币（默认 `USD`，如 `EUR`、`CNY`） | 否 |
+| **payCurrency** | 默认支付币种（默认 `usdt`，如 `btc`、`eth`） | 否 |
+
+#### Webhook 配置
+
+在 NOWPayments Dashboard 设置 IPN Callback URL：
+
+```
+https://your-domain.com/api/v1/payment/webhook/nowpayments
+```
+
+#### 支持的热门币种
+
+| 币种 | payCurrency 值 |
+|------|---------------|
+| USDT (TRC20/ERC20) | `usdt` |
+| Bitcoin | `btc` |
+| Ethereum | `eth` |
+| BNB | `bnb` |
+| Solana | `sol` |
+| USDC | `usdc` |
+
+> 用户可以在支付时选择任意币种，也可以在配置里固定默认币种。
+
+#### 注意事项
+
+- 退款**不支持 API**，需在 NOWPayments Dashboard 手动处理
+- 支付确认需要区块链网络确认，通常需要 1~30 分钟
+- IPN Secret 必须妥善保管，用于验证回调签名（HMAC-SHA512）
+- 不需要 KYC 就能收币，但提现到银行卡需要 KYC
+
 ---
 
 ## 服务商实例管理
@@ -195,6 +246,7 @@ Sub2API 内置支付系统，支持用户自助充值，无需部署独立的支
 | **支付宝官方** | `https://your-domain.com/api/v1/payment/webhook/alipay` |
 | **微信官方** | `https://your-domain.com/api/v1/payment/webhook/wxpay` |
 | **Stripe** | `https://your-domain.com/api/v1/payment/webhook/stripe` |
+| **NOWPayments** | `https://your-domain.com/api/v1/payment/webhook/nowpayments` |
 
 > 将 `your-domain.com` 替换为你的实际域名。EasyPay / 支付宝 / 微信的回调地址在添加服务商时自动填入，无需手动配置。
 
@@ -231,7 +283,8 @@ Sub2API 内置支付系统，支持用户自助充值，无需部署独立的支
   ├─ EasyPay    → 扫码 / H5 跳转
   ├─ 支付宝官方  → 桌面扫码单（当面付优先，电脑网站支付回退）/ 移动端支付宝跳转
   ├─ 微信官方    → 桌面 Native 扫码 / 非微信 H5 / 微信内 JSAPI
-  └─ Stripe     → Payment Element（银行卡/支付宝/微信等）
+  ├─ Stripe     → Payment Element（银行卡/支付宝/微信等）
+  └─ NOWPayments → 展示支付地址，用户用加密货币钱包转账
        │
        ▼
   支付回调验签 → 订单 PAID
