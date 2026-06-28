@@ -108,6 +108,7 @@ type CreateOrderResponse struct {
 	ExpiresAt    time.Time                       `json:"expires_at"`
 	PaymentMode  string                          `json:"payment_mode,omitempty"`
 	ResumeToken  string                          `json:"resume_token,omitempty"`
+	Metadata     map[string]string               `json:"metadata,omitempty"`
 }
 
 type OrderListParams struct {

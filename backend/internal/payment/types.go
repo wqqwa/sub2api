@@ -155,6 +155,7 @@ type CreatePaymentResponse struct {
 	ResultType   CreatePaymentResultType // Typed result contract for frontend flows
 	OAuth        *WechatOAuthInfo        // WeChat OAuth bootstrap payload when required
 	JSAPI        *WechatJSAPIPayload     // WeChat JSAPI invocation payload when ready
+	Metadata     map[string]string       // Provider-specific extra data (e.g. NOWPayments crypto address/amount)
 }
 
 // QueryOrderResponse describes the payment status from the upstream provider.
