@@ -34,6 +34,8 @@ RUN pnpm install --frozen-lockfile
 # Copy only that subtree to keep the build dependency minimal.
 COPY frontend/ ./
 COPY docs/legal/ /app/docs/legal/
+# Increase Node.js heap limit for vue-tsc type-checking (memory-intensive)
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm run build
 
 # -----------------------------------------------------------------------------
