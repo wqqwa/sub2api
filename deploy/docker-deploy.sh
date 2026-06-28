@@ -64,18 +64,7 @@ main() {
         exit 1
     fi
 
-    # Check if deployment already exists
-    if [ -f "docker-compose.yml" ] && [ -f ".env" ]; then
-        print_warning "Deployment files already exist in current directory."
-        read -p "Overwrite existing files? (y/N): " -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_info "Cancelled."
-            exit 0
-        fi
-    fi
-
-    # Download docker-compose.local.yml and save as docker-compose.yml
+    # Always download latest docker-compose.yml (safe to overwrite, it's just config)
     print_info "Downloading docker-compose.yml..."
     if command_exists curl; then
         curl -sSL "${GITHUB_RAW_URL}/docker-compose.local.yml" -o docker-compose.yml
@@ -87,7 +76,7 @@ main() {
     fi
     print_success "Downloaded docker-compose.yml"
 
-    # Download .env.example
+    # Download .env.example (always, for reference)
     print_info "Downloading .env.example..."
     if command_exists curl; then
         curl -sSL "${GITHUB_RAW_URL}/.env.example" -o .env.example
@@ -96,29 +85,42 @@ main() {
     fi
     print_success "Downloaded .env.example"
 
-    # Generate .env file with auto-generated secrets
-    print_info "Generating secure secrets..."
-    echo ""
-
-    # Generate secrets
-    JWT_SECRET=$(generate_secret)
-    TOTP_ENCRYPTION_KEY=$(generate_secret)
-    POSTGRES_PASSWORD=$(generate_secret)
-
-    # Create .env from .env.example
-    cp .env.example .env
-
-    # Update .env with generated secrets (cross-platform compatible)
-    if sed --version >/dev/null 2>&1; then
-        # GNU sed (Linux)
-        sed -i "s/^JWT_SECRET=.*/JWT_SECRET=${JWT_SECRET}/" .env
-        sed -i "s/^TOTP_ENCRYPTION_KEY=.*/TOTP_ENCRYPTION_KEY=${TOTP_ENCRYPTION_KEY}/" .env
-        sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${POSTGRES_PASSWORD}/" .env
+    # Generate .env file with auto-generated secrets (only if .env doesn't exist)
+    if [ -f ".env" ]; then
+        print_info "Existing .env file found, preserving your secrets (skipping regeneration)."
     else
-        # BSD sed (macOS)
-        sed -i '' "s/^JWT_SECRET=.*/JWT_SECRET=${JWT_SECRET}/" .env
-        sed -i '' "s/^TOTP_ENCRYPTION_KEY=.*/TOTP_ENCRYPTION_KEY=${TOTP_ENCRYPTION_KEY}/" .env
-        sed -i '' "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${POSTGRES_PASSWORD}/" .env
+        print_info "Generating secure secrets..."
+        echo ""
+
+        # Generate secrets
+        JWT_SECRET=$(generate_secret)
+        TOTP_ENCRYPTION_KEY=$(generate_secret)
+        POSTGRES_PASSWORD=$(generate_secret)
+
+        # Create .env from .env.example
+        cp .env.example .env
+
+        # Update .env with generated secrets (cross-platform compatible)
+        if sed --version >/dev/null 2>&1; then
+            # GNU sed (Linux)
+            sed -i "s/^JWT_SECRET=.*/JWT_SECRET=${JWT_SECRET}/" .env
+            sed -i "s/^TOTP_ENCRYPTION_KEY=.*/TOTP_ENCRYPTION_KEY=${TOTP_ENCRYPTION_KEY}/" .env
+            sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${POSTGRES_PASSWORD}/" .env
+        else
+            # BSD sed (macOS)
+            sed -i '' "s/^JWT_SECRET=.*/JWT_SECRET=${JWT_SECRET}/" .env
+            sed -i '' "s/^TOTP_ENCRYPTION_KEY=.*/TOTP_ENCRYPTION_KEY=${TOTP_ENCRYPTION_KEY}/" .env
+            sed -i '' "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${POSTGRES_PASSWORD}/" .env
+        fi
+
+        echo ""
+        echo "Generated secure credentials:"
+        echo "  POSTGRES_PASSWORD:     ${POSTGRES_PASSWORD}"
+        echo "  JWT_SECRET:            ${JWT_SECRET}"
+        echo "  TOTP_ENCRYPTION_KEY:   ${TOTP_ENCRYPTION_KEY}"
+        echo ""
+        print_warning "These credentials have been saved to .env file."
+        print_warning "Please keep them secure and do not share publicly!"
     fi
 
     # Create data directories
@@ -133,15 +135,6 @@ main() {
     # Display completion message
     echo "=========================================="
     echo "  Preparation Complete!"
-    echo "=========================================="
-    echo ""
-    echo "Generated secure credentials:"
-    echo "  POSTGRES_PASSWORD:     ${POSTGRES_PASSWORD}"
-    echo "  JWT_SECRET:            ${JWT_SECRET}"
-    echo "  TOTP_ENCRYPTION_KEY:   ${TOTP_ENCRYPTION_KEY}"
-    echo ""
-    print_warning "These credentials have been saved to .env file."
-    print_warning "Please keep them secure and do not share publicly!"
     echo ""
     echo "Directory structure:"
     echo "  docker-compose.yml        - Docker Compose configuration"
@@ -154,10 +147,10 @@ main() {
     echo "Next steps:"
     echo "  1. (Optional) Edit .env to customize configuration"
     echo "  2. Start services:"
-    echo "     docker-compose up -d"
+    echo "     docker compose up -d"
     echo ""
     echo "  3. View logs:"
-    echo "     docker-compose logs -f sub2api"
+    echo "     docker compose logs -f sub2api"
     echo ""
     echo "  4. Access Web UI:"
     echo "     http://localhost:8080"
