@@ -186,6 +186,20 @@ docker compose logs -f sub2api
 - 创建数据目录（使用本地目录，便于备份和迁移）
 - 显示生成的凭证供你记录
 
+#### 更新到最新版本
+
+Docker 镜像通过 GitHub Actions 自动构建并托管在 ghcr.io。更新方法：
+
+```bash
+cd sub2api-deploy
+
+# 拉取最新镜像并重启
+docker compose pull
+docker compose up -d
+```
+
+> 提示：重新运行部署脚本（`curl ... | bash`）也是安全的 —— 会覆盖 `docker-compose.yml`，但保留现有的 `.env` 和数据。
+
 #### 手动部署
 
 如果你希望手动配置：

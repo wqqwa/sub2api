@@ -185,6 +185,20 @@ docker compose logs -f sub2api
 - Creates data directories (uses local directories for easy backup/migration)
 - Displays generated credentials for your reference
 
+#### Update to Latest Version
+
+The Docker image is auto-built via GitHub Actions and hosted on ghcr.io. To update:
+
+```bash
+cd sub2api-deploy
+
+# Pull the latest image and restart
+docker compose pull
+docker compose up -d
+```
+
+> Tip: Re-running the deploy script (`curl ... | bash`) is also safe — it overwrites `docker-compose.yml` but preserves your existing `.env` and data.
+
 #### Manual Deployment
 
 If you prefer manual setup:

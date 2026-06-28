@@ -185,6 +185,20 @@ docker compose logs -f sub2api
 - データディレクトリを作成（バックアップ・移行が容易なローカルディレクトリを使用）
 - 生成された認証情報を参照用に表示
 
+#### 最新バージョンへの更新
+
+Docker イメージは GitHub Actions で自動ビルドされ、ghcr.io でホストされています。更新方法:
+
+```bash
+cd sub2api-deploy
+
+# 最新イメージを取得して再起動
+docker compose pull
+docker compose up -d
+```
+
+> ヒント: デプロイスクリプト（`curl ... | bash`）を再実行しても安全です — `docker-compose.yml` は上書きされますが、既存の `.env` とデータは保持されます。
+
 #### 手動デプロイ
 
 手動でセットアップする場合:
