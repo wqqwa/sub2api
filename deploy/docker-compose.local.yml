@@ -24,10 +24,7 @@ services:
   # Sub2API Application
   # ===========================================================================
   sub2api:
-    build:
-      context: https://github.com/wqqwa/sub2api.git#main
-      dockerfile: Dockerfile
-    image: wqqwa/sub2api:latest
+    image: ghcr.io/wqqwa/sub2api:latest
     container_name: sub2api
     restart: unless-stopped
     ulimits:
